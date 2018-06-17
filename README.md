@@ -8,16 +8,23 @@ https://www.aliexpress.com/item/TTGO-New-BTC-Ticker-ESP32-for-Arduino-Source-Bit
 TTGO New BTC Ticker ESP32 for Arduino Source Bitcoin Price Ticker Program 4 MB SPI Flash 4 MB Psram
 
 Arduino setting:
+
   ESP32 Dev Module
+
   Flash mode: QIO
+  
   Flash size: 4MB
+  
   Flash freq: 80MHz
   
 Update ssid and password to match WiFi
+
 Assume MQTT broker available.
 
 time/seconds = actually time now published by broker
+
 shed.temp = temperature of a sensor
+
 bed.temp = temperature of a sensor
 
 
