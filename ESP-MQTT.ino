@@ -42,8 +42,7 @@ int value = 0;
 
 const char* mqtt_server = "192.168.1.8";
 
-void drawBackground() {
-
+void clearDisplay() {
   tft.setRotation(3);
   tft.fillScreen(ILI9341_BLACK);
   tft.setTextColor(ILI9341_WHITE);
@@ -53,7 +52,10 @@ void drawBackground() {
   tft.setTextSize(1);
   tft.setCursor(260, 230);
   tft.println("MQTT v2");
+}
 
+void drawBackground() {
+  clearDisplay();
   tft.setFont(&FreeMono12pt7b);
   tft.setTextColor(ILI9341_GREEN);
   //tft.fillRect(6,150,230,35,ILI9341_BLACK);
@@ -76,31 +78,26 @@ void drawBackground() {
 }
 
 void configModeCallback (WiFiManager *myWiFiManager) {
-  tft.setRotation(3);
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextWrap(false);
-
-  tft.setTextSize(1);
-  tft.setCursor(260, 230);
-  tft.println("MQTT v2");
+  clearDisplay();
   
   tft.setFont(&FreeMono12pt7b);
   tft.setTextColor(ILI9341_RED);
-  tft.setCursor(0,20);
+  tft.setCursor(40,20);
   tft.println("WiFi Config Mode");
-  tft.println("");
+
   tft.setFont(&FreeMono9pt7b);
+  tft.setCursor(40,110);
   tft.println("Connect to network:\n");
   //if you used auto generated SSID, print it
 
-  tft.setTextColor(ILI9341_WHITE);
   tft.setFont(&FreeMono12pt7b);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setCursor(50,140);
   tft.println(myWiFiManager->getConfigPortalSSID());
 
-  tft.setTextColor(ILI9341_RED);
   tft.setFont(&FreeMono9pt7b);
-  tft.println("");
+  tft.setTextColor(ILI9341_RED);
+  tft.setCursor(40,165);
   tft.println("to setup device WiFi");
 }
 
@@ -108,6 +105,7 @@ void setup() {
 
   Serial.begin(115200);
   tft.begin();
+  clearDisplay();
 
   WiFiManager wifiManager;
   //reset saved settings
@@ -116,17 +114,9 @@ void setup() {
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
 
-  //set custom ip for portal
-  wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-
-  //fetches ssid and pass from eeprom and tries to connect
-  //if it does not connect it starts an access point with the specified name
-  //and goes into a blocking loop awaiting configuration
-  //wifiManager.autoConnect("ESP32-AutoConfig");
-  //or use this for auto generated name ESP + ChipID
-
   if (!wifiManager.autoConnect()) {
     ESP.restart();
+    clearDisplay();
     delay(1000);
   }
 
