@@ -27,7 +27,7 @@ shed.temp = temperature of a sensor
 
 bed.temp = temperature of a sensor
 
-
+study.temp = temperature of a sensor
   
   
   
