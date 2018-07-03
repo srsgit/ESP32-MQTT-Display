@@ -7,7 +7,7 @@
 
 */
 // flag to format file syste and lose any saved config
-#define DEBUG_CLEAN
+// #define DEBUG_CLEAN 1
 
 #include <FS.h>
 #include <FSImpl.h>
@@ -42,7 +42,9 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_R
 // Update these with values suitable for your network.
 
 WiFiClient espClient;
+
 PubSubClient client(espClient);
+
 long lastMsg = 0;
 char msg[50];
 int value = 0;
@@ -133,7 +135,7 @@ void setup() {
 
 #ifdef DEBUG_CLEAN
   //clean FS, for testing
-  //SPIFFS.format();
+  SPIFFS.format();
 #endif
 
   //read configuration from FS json
@@ -273,14 +275,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 String oldTime = "                     ";
+long lastMsgTimestamp = millis();
+
 void callbackTime(char* topic, byte* payload, unsigned int length) {
 
+  lastMsgTimestamp = millis();
   String nowDate = (char *) payload;
   nowDate = nowDate.substring(0,10);
   String nowTime = (char *) payload;
   nowTime = nowTime.substring(11,16);
 
   if (nowTime != oldTime) {
+    tft.drawRoundRect(  0,5,  159,55,3, ILI9341_WHITE);
     tft.setFont(&FreeMonoBold24pt7b);
     tft.setTextColor(ILI9341_RED);
     tft.fillRect(1,6,156,53,ILI9341_BLACK);
@@ -297,6 +303,11 @@ void callbackTime(char* topic, byte* payload, unsigned int length) {
     
     oldTime = nowTime;
   }
+}
+
+void callbackTimeLost() {
+  tft.drawLine(1,6,156,53, ILI9341_RED);
+  tft.drawLine(1,53,156,6, ILI9341_RED);
 }
 
 String oldShedTemp = "00.00";
@@ -351,11 +362,19 @@ void callbackStudyTemp(char* topic, byte* payload, unsigned int length) {
 }
 
 void reconnect() {
+
+  String mac = WiFi.macAddress();
+  char   macChar[40];
+
+  Serial.print("mac = ");
+  Serial.println(mac);
+  mac.toCharArray(macChar, sizeof(macChar));
+  
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ESP32Client")) {
+    if (client.connect(macChar)) {
       Serial.println("connected");
       client.subscribe("time/seconds");
       client.subscribe("shed.temp");
@@ -375,4 +394,8 @@ void loop() {
     reconnect();
   }
   client.loop();
+
+  if ((millis() - lastMsgTimestamp) > 30000L) {
+    callbackTimeLost();
+  }
 }
