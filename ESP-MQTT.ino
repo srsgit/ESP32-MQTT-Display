@@ -6,6 +6,7 @@
  achieve the same result without blocking the main loop.
 
 */
+
 // flag to format file syste and lose any saved config
 // #define DEBUG_CLEAN 1
 
@@ -39,7 +40,48 @@
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST, TFT_MISO);
 
-// Update these with values suitable for your network.
+#define LCD_W 320
+#define LCD_H 240
+
+
+#define TEXT_TITLE_OFFSET_X 6
+#define TEXT_TITLE_OFFSET_Y 20
+#define TEXT_VALUE_OFFSET_X 6
+#define TEXT_VALUE_OFFSET_Y 48
+
+#define BOX_W     105
+#define BOX_H     58
+#define BOX_GAP_X 1
+#define BOX_GAP_Y 6
+
+#define BOX_X_TIME   0
+#define BOX_X_DATE   161
+
+#define BOX_Y_TIME   5
+#define BOX_Y_DATE   5
+
+#define BOX_W_TIME   159
+#define BOX_H_TIME   55
+
+#define BOX_W_DATE   159
+#define BOX_H_DATE   55
+
+#define TEXT_X_TIME   10
+#define TEXT_Y_TIME   44
+
+#define TEXT_X_DATE   170
+#define TEXT_Y_DATE   44
+
+#define BOX_X1   0
+#define BOX_X2   (BOX_X1 + BOX_W + BOX_GAP_X)
+#define BOX_X3   (BOX_X2 + BOX_W + BOX_GAP_X)
+
+#define BOX_Y1   70
+#define BOX_Y2   (BOX_Y1 + BOX_H + BOX_GAP_Y)
+
+#define BOX_W1   BOX_W
+#define BOX_W2   BOX_W
+#define BOX_W3   (LCD_W - BOX_X3)
 
 WiFiClient espClient;
 
@@ -48,6 +90,8 @@ PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;
+
+// Update these with values suitable for your network.
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 //length should be max size + 1 
@@ -83,26 +127,35 @@ void drawBackground() {
   clearDisplay();
   tft.setFont(&FreeMono12pt7b);
   tft.setTextColor(ILI9341_GREEN);
-  //tft.fillRect(6,150,230,35,ILI9341_BLACK);
-  tft.setCursor(6,90);
+
+  tft.drawRoundRect(BOX_X_TIME, BOX_Y_TIME, BOX_W_TIME, BOX_H_TIME, 3, ILI9341_WHITE);
+  tft.drawRoundRect(BOX_X_DATE, BOX_Y_DATE, BOX_W_DATE, BOX_H_DATE, 3, ILI9341_WHITE);
+
+  tft.setCursor((BOX_X1 + TEXT_TITLE_OFFSET_X), (BOX_Y1 + TEXT_TITLE_OFFSET_Y));
   tft.print("Shed");
 
-  tft.setCursor(113,90);
+  tft.setCursor((BOX_X2 + TEXT_TITLE_OFFSET_X), (BOX_Y1 + TEXT_TITLE_OFFSET_Y));
   tft.print("Study");
 
-  tft.setCursor(216,90);
+  tft.setCursor((BOX_X3 + TEXT_TITLE_OFFSET_X), (BOX_Y1 + TEXT_TITLE_OFFSET_Y));
   tft.print("Bedroom");
 
-  tft.setCursor(216,150);
+  tft.setCursor((BOX_X1 + TEXT_TITLE_OFFSET_X), (BOX_Y2 + TEXT_TITLE_OFFSET_Y));
+  tft.print("----");
+
+  tft.setCursor((BOX_X2 + TEXT_TITLE_OFFSET_X), (BOX_Y2 + TEXT_TITLE_OFFSET_Y));
+  tft.print("----");
+
+  tft.setCursor((BOX_X3 + TEXT_TITLE_OFFSET_X), (BOX_Y2 + TEXT_TITLE_OFFSET_Y));
   tft.print("Lounge");
 
-  tft.drawRoundRect(  0,5,  159,55,3, ILI9341_WHITE);
-  tft.drawRoundRect(161,5,  159,55,3, ILI9341_WHITE);
-  tft.drawRoundRect(  0,70, 105,60,3, ILI9341_WHITE);
-  tft.drawRoundRect(106,70, 105,60,3, ILI9341_WHITE);
-  tft.drawRoundRect(212,70, 108,60,3, ILI9341_WHITE);
+  tft.drawRoundRect(BOX_X1, BOX_Y1, BOX_W1, BOX_H,3, ILI9341_WHITE);
+  tft.drawRoundRect(BOX_X2, BOX_Y1, BOX_W2, BOX_H,3, ILI9341_WHITE);
+  tft.drawRoundRect(BOX_X3, BOX_Y1, BOX_W3, BOX_H,3, ILI9341_WHITE);
 
-  tft.drawRoundRect(212,135,108,60,3, ILI9341_WHITE);
+  tft.drawRoundRect(BOX_X1, BOX_Y2, BOX_W1, BOX_H,3, ILI9341_WHITE);
+  tft.drawRoundRect(BOX_X2, BOX_Y2, BOX_W2, BOX_H,3, ILI9341_WHITE);
+  tft.drawRoundRect(BOX_X3, BOX_Y2, BOX_W3, BOX_H,3, ILI9341_WHITE);
 
   tft.setFont();
 }
@@ -296,18 +349,23 @@ void callbackTime(char* topic, byte* payload, unsigned int length) {
   nowTime = nowTime.substring(11,16);
 
   if (nowTime != oldTime) {
-    tft.drawRoundRect(  0,5,  159,55,3, ILI9341_WHITE);
+    tft.fillRect(BOX_X_TIME, BOX_Y_TIME, BOX_W_TIME, BOX_H_TIME, ILI9341_BLACK);
+    tft.drawRoundRect(BOX_X_TIME, BOX_Y_TIME, BOX_W_TIME, BOX_H_TIME, 3, ILI9341_WHITE);
     tft.setFont(&FreeMonoBold24pt7b);
     tft.setTextColor(ILI9341_RED);
-    tft.fillRect(1,6,156,53,ILI9341_BLACK);
-    tft.setCursor(10,44);
+
+    tft.setCursor(TEXT_X_TIME, TEXT_Y_TIME);
     tft.print(nowTime);
     tft.setFont();
     
     tft.setFont(&FreeMono12pt7b);
     tft.setTextColor(ILI9341_BLUE);
-    tft.fillRect(162,6,156,53,ILI9341_BLACK);
-    tft.setCursor(170,44);
+    tft.fillRect(BOX_X_DATE, BOX_Y_DATE, BOX_W_DATE, BOX_H_DATE, ILI9341_BLACK);
+    tft.drawRoundRect(BOX_X_DATE, BOX_Y_DATE, BOX_W_DATE, BOX_H_DATE, 3, ILI9341_WHITE);
+
+    //tft.fillRect(162,6,156,53,ILI9341_BLACK);
+    tft.setCursor(TEXT_X_DATE, TEXT_Y_DATE);
+    //tft.setCursor(170,44);
     tft.print(nowDate);
     tft.setFont();
     
@@ -316,10 +374,12 @@ void callbackTime(char* topic, byte* payload, unsigned int length) {
 }
 
 void callbackTimeLost() {
-  tft.drawLine(1,6,156,53, ILI9341_RED);
-  tft.drawLine(1,53,156,6, ILI9341_RED);
+  tft.drawRoundRect(BOX_X_TIME, BOX_Y_TIME, BOX_W_TIME, BOX_H_TIME, 3, ILI9341_WHITE);
+  tft.drawLine(BOX_X_TIME, BOX_Y_TIME,                (BOX_X_TIME + BOX_W_TIME), (BOX_Y_TIME + BOX_H_TIME), ILI9341_RED);
+  tft.drawLine(BOX_X_TIME, (BOX_Y_TIME + BOX_H_TIME), (BOX_X_TIME + BOX_W_TIME), BOX_Y_TIME,                ILI9341_RED);
 }
 
+//Box X1, Y1
 String oldShedTemp = "00.00";
 void callbackShedTemp(char* topic, byte* payload, unsigned int length) {
 
@@ -330,13 +390,15 @@ void callbackShedTemp(char* topic, byte* payload, unsigned int length) {
     tft.setFont(&FreeMono12pt7b);
     tft.setTextColor(ILI9341_GREEN);
     tft.fillRect(6,96,94,28,ILI9341_BLACK);
-    tft.setCursor(6,118);
+
+    tft.setCursor((BOX_X1 + TEXT_VALUE_OFFSET_X), (BOX_Y1 + TEXT_VALUE_OFFSET_Y));
     tft.print(nowTemp);
     oldShedTemp = nowTemp;
     tft.setFont();
   }
 }
 
+//Box X3, Y1
 String oldBedTemp = "00.00";
 void callbackBedTemp(char* topic, byte* payload, unsigned int length) {
 
@@ -347,13 +409,15 @@ void callbackBedTemp(char* topic, byte* payload, unsigned int length) {
     tft.setFont(&FreeMono12pt7b);
     tft.setTextColor(ILI9341_GREEN);
     tft.fillRect(214,96,94,28,ILI9341_BLACK);
-    tft.setCursor(216,118);
+    tft.setCursor((BOX_X3 + TEXT_VALUE_OFFSET_X), (BOX_Y1 + TEXT_VALUE_OFFSET_Y));
+    //tft.setCursor(216,118);
     tft.print(nowTemp);
     oldBedTemp = nowTemp;
     tft.setFont();
   }
 }
 
+// Box X3, Y2
 String oldLoungeTemp = "00.00";
 void callbackLoungeTemp(char* topic, byte* payload, unsigned int length) {
 
@@ -364,13 +428,16 @@ void callbackLoungeTemp(char* topic, byte* payload, unsigned int length) {
     tft.setFont(&FreeMono12pt7b);
     tft.setTextColor(ILI9341_GREEN);
     tft.fillRect(214,160,94,28,ILI9341_BLACK);
-    tft.setCursor(216,188);
+    tft.setCursor((BOX_X3 + TEXT_VALUE_OFFSET_X), (BOX_Y2 + TEXT_VALUE_OFFSET_Y));
+    //tft.setCursor(216,188);
     tft.print(nowTemp);
     oldLoungeTemp = nowTemp;
     tft.setFont();
   }
 }
 
+
+//Box X2, Y1
 String oldStudyTemp = "00.00";
 void callbackStudyTemp(char* topic, byte* payload, unsigned int length) {
 
@@ -381,7 +448,8 @@ void callbackStudyTemp(char* topic, byte* payload, unsigned int length) {
     tft.setFont(&FreeMono12pt7b);
     tft.setTextColor(ILI9341_GREEN);
     tft.fillRect(113,96,94,28,ILI9341_BLACK);
-    tft.setCursor(113,118);
+    tft.setCursor((BOX_X2 + TEXT_VALUE_OFFSET_X), (BOX_Y1 + TEXT_VALUE_OFFSET_Y));
+    //tft.setCursor(113,118);
     tft.print(nowTemp);
     oldStudyTemp = nowTemp;
     tft.setFont();
