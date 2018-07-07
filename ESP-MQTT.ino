@@ -93,12 +93,17 @@ void drawBackground() {
   tft.setCursor(216,90);
   tft.print("Bedroom");
 
+  tft.setCursor(216,150);
+  tft.print("Lounge");
+
   tft.drawRoundRect(  0,5,  159,55,3, ILI9341_WHITE);
   tft.drawRoundRect(161,5,  159,55,3, ILI9341_WHITE);
   tft.drawRoundRect(  0,70, 105,60,3, ILI9341_WHITE);
   tft.drawRoundRect(106,70, 105,60,3, ILI9341_WHITE);
   tft.drawRoundRect(212,70, 108,60,3, ILI9341_WHITE);
-  
+
+  tft.drawRoundRect(212,135,108,60,3, ILI9341_WHITE);
+
   tft.setFont();
 }
 
@@ -131,6 +136,9 @@ void setup() {
   Serial.begin(115200);
   tft.begin();
   clearDisplay();
+
+  delay(5000);
+  WiFi.begin();  
   WiFi.mode(WIFI_STA);
 
 #ifdef DEBUG_CLEAN
@@ -264,11 +272,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   if (topicStr == "time/seconds") {
     callbackTime(topic, payload, length);
-  } else if (topicStr == "shed.temp") {
+  } else if (topicStr == "temp.shed") {
     callbackShedTemp(topic, payload, length);
-  } else if (topicStr == "bed.temp") {
+  } else if (topicStr == "temp.bed") {
     callbackBedTemp(topic, payload, length);
-  } else if (topicStr == "study.temp") {
+  } else if (topicStr == "temp.lounge") {
+    callbackLoungeTemp(topic, payload, length);
+  } else if (topicStr == "temp.study") {
     callbackStudyTemp(topic, payload, length);
   }
 
@@ -344,6 +354,23 @@ void callbackBedTemp(char* topic, byte* payload, unsigned int length) {
   }
 }
 
+String oldLoungeTemp = "00.00";
+void callbackLoungeTemp(char* topic, byte* payload, unsigned int length) {
+
+  String nowTemp = (char *) payload;
+  nowTemp = nowTemp.substring(0,length);
+
+  if (nowTemp != oldLoungeTemp) {
+    tft.setFont(&FreeMono12pt7b);
+    tft.setTextColor(ILI9341_GREEN);
+    tft.fillRect(214,160,94,28,ILI9341_BLACK);
+    tft.setCursor(216,188);
+    tft.print(nowTemp);
+    oldLoungeTemp = nowTemp;
+    tft.setFont();
+  }
+}
+
 String oldStudyTemp = "00.00";
 void callbackStudyTemp(char* topic, byte* payload, unsigned int length) {
 
@@ -377,9 +404,10 @@ void reconnect() {
     if (client.connect(macChar)) {
       Serial.println("connected");
       client.subscribe("time/seconds");
-      client.subscribe("shed.temp");
-      client.subscribe("bed.temp");
-      client.subscribe("study.temp");
+      client.subscribe("temp.shed");
+      client.subscribe("temp.bed");
+      client.subscribe("temp.study");
+      client.subscribe("temp.lounge");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
